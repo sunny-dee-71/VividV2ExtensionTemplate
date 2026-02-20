@@ -1,0 +1,1 @@
+# VividV2ExtensionTemplate
