@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using VividV2.Classes.Buttons;
+using VividV2.Core;
 using VividV2.Mods;
 
 namespace VividV2ExtensionTemplate.Mods.Modules
@@ -41,6 +42,7 @@ namespace VividV2ExtensionTemplate.Mods.Modules
         public override void OnDisable()
         {
             // this will be called every time the module is disabled
+            Logger.LogError
         }
 
         public override void OnEnable()
@@ -48,7 +50,9 @@ namespace VividV2ExtensionTemplate.Mods.Modules
             // this will be called every time the module is enabled
         }
 
-        // other useful methods are SetEnabled which will set the mod the be enabled or disabled
+        // other useful methods are:
+        // SetEnabled which will set the mod the be enabled or disabled
+        // Logger.Log and Logger.LogError which will log messages, (IMPORTANT: make sure to use VividV2.Core.Logger and not the bepinex one)
 
 
     }
