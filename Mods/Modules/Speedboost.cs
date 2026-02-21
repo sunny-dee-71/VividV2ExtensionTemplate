@@ -42,7 +42,6 @@ namespace VividV2ExtensionTemplate.Mods.Modules
         public override void OnDisable()
         {
             // this will be called every time the module is disabled
-            Logger.LogError
         }
 
         public override void OnEnable()
