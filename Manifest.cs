@@ -8,6 +8,7 @@ namespace VividV2.Mods
     internal class Manifest : ExtensionManifest
     {
         public override string Name { get; set; } = "VividExtension";
+        public override string Author { get; set; } = "VividV2 Team";
         public override string Version { get; set; } = "1.0.0";
 
     }

@@ -8,7 +8,7 @@ namespace VividV2ExtensionTemplate.Mods.Animations.Close
 {
     public class ExampleCloseAnimation : MenuAnimation
     {
-        public ExampleCloseAnimation() : base("Shrink", MenuAnimationType.MenuClose)
+        public ExampleCloseAnimation() : base("ExampleCloseAnimation", MenuAnimationType.MenuClose)
         {
         }
 

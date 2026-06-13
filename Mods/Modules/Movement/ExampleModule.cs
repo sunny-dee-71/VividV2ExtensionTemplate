@@ -9,7 +9,7 @@ using VividV2.Mods;
 
 namespace VividV2ExtensionTemplate.Mods.Modules.Movement
 {
-    internal class ExampleMod : Module
+    internal class ExampleModule : Module
     {
         #region Constructor
 
@@ -20,7 +20,7 @@ namespace VividV2ExtensionTemplate.Mods.Modules.Movement
         // if it is toggleable OnEnable will be called each time it is pressed
         // if it is toggleable OnDisable will never be called
         // Update will will always be called no matter if it is or isnt toggleable
-        public ExampleMod() : base("Example", Categories.Example, true)
+        public ExampleModule() : base("Example", Categories.Example, true)
         {
             #region Variables
 

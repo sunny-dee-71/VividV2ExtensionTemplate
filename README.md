@@ -1,343 +1,364 @@
-﻿# VividV2 Extension Template
+﻿# VividV2 Extension SDK
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![.NET](https://img.shields.io/badge/.NET-8.0-purple.svg)
-![Status](https://img.shields.io/badge/status-template-green.svg)
-
-A template for creating extensions, modules, and player modules for **VividV2**.
+> **A modding framework for building VR menu extensions — modules, animations, player actions, and categories — with a clean, structured API.**
 
 ---
 
 ## Table of Contents
 
-- Overview
-- Modules
-- Player Modules
-- Categories
-- Menu Animations
-- Extension Manifest
+- [Getting Started](#getting-started)
+- [Manifest](#manifest)
+- [Categories](#categories)
+- [Modules](#modules)
+  - [Creating a Module](#creating-a-module)
+  - [Lifecycle Methods](#lifecycle-methods)
+  - [Variables](#variables)
+    - [Bool Variable](#bool-variable)
+    - [Int Variable](#int-variable)
+    - [Float Variable](#float-variable)
+    - [String Variable](#string-variable)
+    - [Color Variable](#color-variable)
+    - [Keybind Variable](#keybind-variable)
+  - [Utility Methods](#utility-methods)
+- [Player Modules](#player-modules)
+- [Menu Animations](#menu-animations)
+  - [Open Animation](#open-animation)
+  - [Close Animation](#close-animation)
 
 ---
 
-## Overview
+## Getting Started
 
-<details>
-<summary>Expand Overview</summary>
-
-This project demonstrates how to create:
-
-- Modules
-- Player Modules
-- Categories
-- Extension Manifests
-- Variable systems (Float, Int, Bool, String, Color, Keybind)
-
-</details>
+Clone or download the extension template, then define your manifest, register your categories, and drop your modules into the appropriate namespaces. The framework handles registration and lifecycle automatically.
 
 ---
 
-# Modules
+## Manifest
 
-## Example Module
-
-<details>
-<summary>Expand Example Module</summary>
+Every extension must declare a manifest. This identifies your extension to the host framework.
 
 ```csharp
-internal class ExampleMod : Module
+internal class Manifest : ExtensionManifest
+{
+    public override string Name    { get; set; } = "MyExtension";
+    public override string Author  { get; set; } = "YourName";
+    public override string Version { get; set; } = "1.0.0";
+}
 ```
 
-</details>
+| Property  | Description                         |
+|-----------|-------------------------------------|
+| `Name`    | Display name of the extension       |
+| `Author`  | Author or team name                 |
+| `Version` | Semantic version string             |
 
 ---
 
-## Constructor
+## Categories
 
-<details>
-<summary>Expand Constructor</summary>
+Categories define where your modules appear in the menu. Register them in a central `Categories` class.
 
 ```csharp
-// to initialize the module do this
-// the first string will be the name shown in the menu
-// the second is the category, that is where the mod will be located
-// the third bool is if it is toggleable, set to true to be toggleable or false to not be toggleable
-// if it is toggleable OnEnable will be called each time it is pressed
-// if it is toggleable OnDisable will never be called
-// Update will will always be called no matter if it is or isnt toggleable
-
-public ExampleMod() : base("Example", Categories.Example, true)
+internal class Categories
+{
+    public static readonly Category Movement = Category.Register("Movement");
+    public static readonly Category Visual   = Category.Register("Visual");
+}
 ```
 
-</details>
+### Parent & Child Categories
+
+You can nest categories using the second parameter of `Register`:
+
+```csharp
+public static readonly Category Parent = Category.Register("Parent Category");
+public static readonly Category Child  = Category.Register("Child Category", Parent);
+```
+
+### Hidden Categories
+
+To prevent a category from appearing on the menu home page, pass `true` as the third parameter:
+
+```csharp
+public static readonly Category Hidden = Category.Register("Hidden Category", null, true);
+```
+
+| Parameter | Type       | Description                                         |
+|-----------|------------|-----------------------------------------------------|
+| `name`    | `string`   | Display name shown in the menu                      |
+| `parent`  | `Category` | *(Optional)* Parent category for nesting            |
+| `hidden`  | `bool`     | *(Optional)* If `true`, hides from the home page    |
 
 ---
 
-## Variables
+## Modules
 
-<details>
-<summary>Expand Variables</summary>
+Modules are the core building block of extensions — each one represents a single feature or behaviour in the menu.
 
-### Adding Variables
+### Creating a Module
+
+Inherit from `Module` and call the base constructor:
 
 ```csharp
-// to add variables first initialize the variable
-// and the add it to the module by using AddVariable
-
-FloatVariable exampleVariable = new FloatVariable("Example Variable", 1f, 0f, 10f);
-AddVariable(exampleVariable);
+internal class MyModule : Module
+{
+    public MyModule() : base("My Module", Categories.Movement, true)
+    {
+        // Initialize variables here
+    }
+}
 ```
+
+| Parameter     | Type       | Description                                                                 |
+|---------------|------------|-----------------------------------------------------------------------------|
+| `name`        | `string`   | Display name shown in the menu                                              |
+| `category`    | `Category` | The category this module belongs to                                         |
+| `toggleable`  | `bool`     | If `true`, the module can be toggled on/off. If `false`, it fires once on press. |
+
+> **Note:** When `toggleable` is `false`, `OnEnable` is called each time the button is pressed. `OnDisable` will never be called.
 
 ---
 
-### Getting Variables
+### Lifecycle Methods
 
-```csharp
-// WARNING: the name is case sensitive
-// Make sure to use the correct type when getting the variable, otherwise it will return null
-GetVariable<FloatVariable>("Example Variable");
-```
+| Method        | When it runs                                                  |
+|---------------|---------------------------------------------------------------|
+| `Update()`    | Every frame, regardless of whether the module is enabled      |
+| `LateUpdate()`| Every LateUpdate frame, regardless of enabled state           |
+| `OnEnable()`  | Called each time the module is toggled on (or pressed, if not toggleable) |
+| `OnDisable()` | Called each time the module is toggled off                    |
 
----
-
-## Variable Types
-
-### Bool Variable
-
-```csharp
-BoolVariable boolVariable = new BoolVariable("Bool Variable", true);
-```
-
----
-
-### Int Variable
-
-```csharp
-IntVariable intVariable = new IntVariable("Int Variable", 5, 0, 10);
-```
-
----
-
-### Float Variable
-
-```csharp
-FloatVariable floatVariable = new FloatVariable("Float Variable", 1.0f, 0.0f, 10.0f);
-```
-
----
-
-### String Variable
-
-```csharp
-StringVariable stringVariable = new StringVariable("String Variable", new string[] { "Option 1", "Option 2", "Option 3" });
-```
-
----
-
-### Color Variable
-
-```csharp
-ColorVariable colorVariable = new ColorVariable("Color Variable", new UnityEngine.Color(1f, 0f, 0f));
-```
-
-</details>
-
----
-
-## Keybind Variables
-
-<details>
-<summary>Expand Keybind Variables</summary>
-
-### Overview
-
-```csharp
-// Keybind Variable types:
-// KeybindType.Joystick
-// KeybindType.BothHands
-// KeybindType.SingleHand
-```
-
----
-
-### Both Hands
-
-```csharp
-KeybindVariable keybindVariable = new KeybindVariable("Keybind Variable", KeybindType.BothHands);
-```
-
-```csharp
-// Lets the user select a button type only.
-// The selected button will work on BOTH hands.
-```
-
----
-
-### Single Hand
-
-```csharp
-KeybindVariable keybindVariable2 = new KeybindVariable("Keybind Variable 2", KeybindType.SingleHand);
-```
-
-```csharp
-// Requires specific hand + button match
-```
-
----
-
-### Joystick
-
-```csharp
-KeybindVariable joystickVariable = new KeybindVariable("Joystick Variable", KeybindType.Joystick, HandType.Right);
-```
-
-```csharp
-// JoystickValue.x = horizontal movement
-// JoystickValue.y = vertical movement
-```
-
-</details>
-
----
-
-## Module Lifecycle
-
-<details>
-<summary>Expand Module Lifecycle</summary>
+Use the `Enabled` boolean inside `Update` or `LateUpdate` to guard per-frame logic:
 
 ```csharp
 public override void Update()
 {
     if (Enabled)
     {
-        // runs every frame
+        // Per-frame logic while the module is active
     }
-}
-
-public override void LateUpdate()
-{
-    if (Enabled)
-    {
-        // runs every LateUpdate frame
-    }
-}
-
-public override void OnDisable()
-{
-}
-
-public override void OnEnable()
-{
 }
 ```
 
-</details>
-
 ---
 
-## Useful Methods
+### Variables
 
-<details>
-<summary>Expand Useful Methods</summary>
+Variables are configurable settings that appear in the module's menu panel. Declare them in the constructor, then register them with `AddVariable`.
 
 ```csharp
-// SetEnabled -> enable/disable module
-// Logger.Log / Logger.LogError -> logging system
-// IMPORTANT: use VividV2.Core.Logger not BepInEx logger
+FloatVariable speed = new FloatVariable("Speed", 1f, 0f, 10f);
+AddVariable(speed);
 ```
 
-</details>
+Retrieve a variable at any time using `GetVariable<T>` with the exact name (case-sensitive):
+
+```csharp
+float value = GetVariable<FloatVariable>("Speed").Value;
+```
+
+> ⚠️ Variable names are **case-sensitive**.
 
 ---
 
-# Player Modules
+#### Bool Variable
 
-<details>
-<summary>Expand Player Modules</summary>
+A simple true/false toggle.
 
-## TeleportToPlayer
+```csharp
+BoolVariable myBool = new BoolVariable("Enable Feature", true);
+AddVariable(myBool);
+```
+
+| Parameter       | Type   | Description           |
+|-----------------|--------|-----------------------|
+| `name`          | string | Display name          |
+| `defaultValue`  | bool   | Default state         |
+
+---
+
+#### Int Variable
+
+An integer slider with min and max bounds.
+
+```csharp
+IntVariable myInt = new IntVariable("Jump Count", 5, 0, 10);
+AddVariable(myInt);
+```
+
+| Parameter       | Type   | Description     |
+|-----------------|--------|-----------------|
+| `name`          | string | Display name    |
+| `defaultValue`  | int    | Default value   |
+| `min`           | int    | Minimum value   |
+| `max`           | int    | Maximum value   |
+
+---
+
+#### Float Variable
+
+A float slider with min and max bounds.
+
+```csharp
+FloatVariable myFloat = new FloatVariable("Speed", 1.0f, 0.0f, 10.0f);
+AddVariable(myFloat);
+```
+
+| Parameter       | Type   | Description     |
+|-----------------|--------|-----------------|
+| `name`          | string | Display name    |
+| `defaultValue`  | float  | Default value   |
+| `min`           | float  | Minimum value   |
+| `max`           | float  | Maximum value   |
+
+---
+
+#### String Variable
+
+A multi-option selector. The first entry in the array is the default.
+
+```csharp
+StringVariable myString = new StringVariable("Mode", new string[] { "Walk", "Run", "Sprint" });
+AddVariable(myString);
+```
+
+| Parameter   | Type       | Description                                  |
+|-------------|------------|----------------------------------------------|
+| `name`      | string     | Display name                                 |
+| `options`   | `string[]` | Array of selectable options (first = default)|
+
+---
+
+#### Color Variable
+
+A colour picker using `UnityEngine.Color`.
+
+```csharp
+ColorVariable myColor = new ColorVariable("Trail Color", new UnityEngine.Color(1f, 0f, 0f));
+AddVariable(myColor);
+```
+
+| Parameter       | Type              | Description                        |
+|-----------------|-------------------|------------------------------------|
+| `name`          | string            | Display name                       |
+| `defaultValue`  | `UnityEngine.Color` | Default colour (RGB or RGBA)     |
+
+---
+
+#### Keybind Variable
+
+Maps a module action to a VR controller input. Three keybind types are available:
+
+---
+
+##### `KeybindType.BothHands`
+
+The user selects a button type only. The selected button triggers on **either** hand.
+
+```csharp
+KeybindVariable myKeybind = new KeybindVariable("Activate", KeybindType.BothHands);
+AddVariable(myKeybind);
+```
+
+> Example: If set to **Trigger** — pressing either the left or right trigger returns `true`.
+
+---
+
+##### `KeybindType.SingleHand`
+
+The user selects both a hand and a button. Only that exact combination triggers.
+
+```csharp
+KeybindVariable myKeybind = new KeybindVariable("Fire", KeybindType.SingleHand);
+AddVariable(myKeybind);
+```
+
+> Example: If set to **Right Grip** — only the right grip returns `true`; left grip does not.
+
+---
+
+##### `KeybindType.Joystick`
+
+The user selects a joystick (left or right). Use `JoystickValue` to read the `Vector2` input. The button parameter is ignored for this type.
+
+```csharp
+KeybindVariable myJoystick = new KeybindVariable("Move", KeybindType.Joystick, HandType.Right);
+AddVariable(myJoystick);
+```
+
+| Property           | Description                          |
+|--------------------|--------------------------------------|
+| `JoystickValue.x`  | Horizontal axis input                |
+| `JoystickValue.y`  | Vertical axis input                  |
+
+---
+
+### Utility Methods
+
+| Method                          | Description                                                         |
+|---------------------------------|---------------------------------------------------------------------|
+| `SetEnabled(bool)`              | Programmatically enable or disable the module                       |
+| `Logger.Log(string)`            | Log a message to the console                                        |
+| `Logger.LogError(string)`       | Log an error message to the console                                 |
+
+> ⚠️ Always use `VividV2.Core.Logger` — **not** the BepInEx logger.
+
+---
+
+## Player Modules
+
+Player Modules function identically to regular modules, but are scoped to a specific player. They appear as per-player actions in the menu.
 
 ```csharp
 internal class TeleportToPlayer : PlayerModule
-```
-
-```csharp
-public TeleportToPlayer() : base("Teleport To", false)
-```
-
----
-
-## OnEnable
-
-```csharp
-public override void OnEnable()
 {
-    GorillaLocomotion.GTPlayer.Instance.TeleportTo(targetRig.transform);
+    public TeleportToPlayer() : base("Teleport To", false)
+    {
+        // Variables can be added here just like normal modules
+    }
+
+    public override void OnEnable()
+    {
+        GorillaLocomotion.GTPlayer.Instance.TeleportTo(targetRig.transform);
+    }
 }
 ```
 
-</details>
+| Parameter     | Type    | Description                                  |
+|---------------|---------|----------------------------------------------|
+| `name`        | string  | Display name shown in the player menu        |
+| `toggleable`  | bool    | Whether the action is toggleable or one-shot |
+
+The `targetRig` property is automatically set to the rig of the player the module is being used on.
 
 ---
 
-# Categories
+## Menu Animations
 
-<details>
-<summary>Expand Categories</summary>
+Animations control how the menu opens and closes. Inherit from `MenuAnimation` and implement the `Animate` method.
 
-```csharp
-internal class Categories
-```
+The `Animate` method receives:
+- `AnimationPercentage` — a `float` from `0.0` (start) to `1.0` (end)
+- `target` — a `MenuAnimator` you mutate and return
 
-```csharp
-public static readonly Category Example = Category.Register("Example Category");
-public static readonly Category Visual = Category.Register("Visual");
-```
-
-</details>
+Properties available on `MenuAnimator` include `Scale`, `Position`, `Rotation`, and others.
 
 ---
 
-# Menu Animations
+### Open Animation
 
-<details>
-<summary>Expand Menu Animations</summary>
-
-VividV2 supports custom menu animations for open and close transitions.
-
----
-
-## Close Animation Example
+Called as the menu opens. `AnimationPercentage` goes from `0` → `1`.
 
 ```csharp
-public class ExampleCloseAnimation : MenuAnimation
+public class MyOpenAnimation : MenuAnimation
 {
-    public ExampleCloseAnimation()
-        : base("Shrink", MenuAnimationType.MenuClose)
+    public MyOpenAnimation() : base("MyOpenAnimation", MenuAnimationType.MenuOpen)
     {
     }
 
     public override MenuAnimator Animate(float AnimationPercentage, MenuAnimator target)
     {
-        target.Scale = target.Scale - (target.Scale * (AnimationPercentage));
-        return target;
-    }
-}
-```
-
----
-
-## Open Animation Example
-
-```csharp
-public class ExampleOpenAnimation : MenuAnimation
-{
-    public ExampleOpenAnimation()
-        : base("ExampleOpenAnimation", MenuAnimationType.MenuOpen)
-    {
-    }
-
-    public override MenuAnimator Animate(float AnimationPercentage, MenuAnimator target)
-    {
+        // Scale the menu in from zero to full size
         target.Scale = target.Scale - (target.Scale * (1 - AnimationPercentage));
         return target;
     }
@@ -346,29 +367,26 @@ public class ExampleOpenAnimation : MenuAnimation
 
 ---
 
-### Animation Notes
+### Close Animation
 
-- AnimationPercentage goes from 0 to 1
-- target represents the UI transform state
-- Modify scale, rotation, or position
+Called as the menu closes. `AnimationPercentage` goes from `0` → `1`.
 
-</details>
+```csharp
+public class MyCloseAnimation : MenuAnimation
+{
+    public MyCloseAnimation() : base("MyCloseAnimation", MenuAnimationType.MenuClose)
+    {
+    }
+
+    public override MenuAnimator Animate(float AnimationPercentage, MenuAnimator target)
+    {
+        // Scale the menu out to zero
+        target.Scale = target.Scale - (target.Scale * AnimationPercentage);
+        return target;
+    }
+}
+```
 
 ---
 
-# Extension Manifest
-
-<details>
-<summary>Expand Extension Manifest</summary>
-
-```csharp
-internal class Manifest : ExtensionManifest
-```
-
-```csharp
-public override string Name { get; set; } = "VividExtension";
-public override string Version { get; set; } = "1.0.0";
-```
-
-</details>
-
+*VividV2 Extension SDK — documentation reflects the current template version.*
