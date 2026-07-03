@@ -14,6 +14,8 @@ namespace VividV2ExtensionTemplate.Mods.Modules.Examples
 
         public override void Update()
         {
+            if (!Enabled) return; // this returns if the module is not enabled
+
             // For using the gun lib you should do
             // The bool is if you if you want to gun to snap to players, use if you are making a something that should select a player
             var info = GunLibUtils.UpdateGun(false);
