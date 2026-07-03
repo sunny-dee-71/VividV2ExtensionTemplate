@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using VividV2.Classes.Buttons;
 using VividV2.Classes.Buttons.Variables;
 using VividV2.Classes.Enums;
+using VividV2.Classes.Utils;
 using VividV2.Core;
 using VividV2.Mods;
 
@@ -209,8 +211,6 @@ namespace VividV2ExtensionTemplate.Mods.Modules.Movement
             }
         }
 
-
-
         public override void OnDisable()
         {
             // This will be called every time the module is disabled
@@ -224,7 +224,5 @@ namespace VividV2ExtensionTemplate.Mods.Modules.Movement
         // other useful methods are:
         // SetEnabled which will set the mod the be enabled or disabled
         // Logger.Log and Logger.LogError which will log messages, (IMPORTANT: make sure to use VividV2.Core.Logger and not the bepinex one)
-
-
     }
 }

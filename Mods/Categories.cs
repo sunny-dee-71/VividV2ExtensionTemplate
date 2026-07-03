@@ -9,7 +9,6 @@ namespace VividV2ExtensionTemplate.Mods
     {
         // to create categories just copy these and change the variable name and the string passed.
         public static readonly Category Example = Category.Register("Example Category");
-        public static readonly Category Visual = Category.Register("Visual");
 
         // you can also add parent categorys by using the second parameter of the Register method
         public static readonly Category ParentCategory = Category.Register("Parent Category");
