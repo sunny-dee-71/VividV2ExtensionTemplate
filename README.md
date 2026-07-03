@@ -305,6 +305,8 @@ AddVariable(myJoystick);
 
 > ⚠️ Always use `VividV2.Core.Logger` — **not** the BepInEx logger.
 
+---
+
 #### Gun Utility
 
 The Gun Utility provides a simple way to create gun-based interactions. It handles rendering the gun, detecting trigger input, tracking where the gun is pointing, and optionally snapping to players.
@@ -374,13 +376,13 @@ Task<string> KeyboardUtils.RequestString(
 
 ###### Parameters
 
-####### RequestString(string prompt)
+RequestString(string prompt)
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `prompt` | `string` | The message displayed above the keyboard. |
 
-####### RequestString(string prompt, Action<string> onInputChanged)
+RequestString(string prompt, Action<string> onInputChanged)
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
