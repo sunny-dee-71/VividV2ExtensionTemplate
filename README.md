@@ -20,6 +20,8 @@
     - [Color Variable](#color-variable)
     - [Keybind Variable](#keybind-variable)
   - [Utility Methods](#utility-methods)
+    - [Gun Utility](#gun-utility)
+    - [Keyboard Utility](#keyboard-utility)
 - [Player Modules](#player-modules)
 - [Menu Animations](#menu-animations)
   - [Open Animation](#open-animation)
@@ -303,7 +305,132 @@ AddVariable(myJoystick);
 
 > ⚠️ Always use `VividV2.Core.Logger` — **not** the BepInEx logger.
 
+#### Gun Utility
+
+The Gun Utility provides a simple way to create gun-based interactions. It handles rendering the gun, detecting trigger input, tracking where the gun is pointing, and optionally snapping to players.
+
+Call `GunLibUtils.UpdateGun()` once every frame inside your module's `Update()` method.
+
+##### Method
+
+```csharp
+GunInfo GunLibUtils.UpdateGun(bool snapToPlayers);
+```
+
+###### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `snapToPlayers` | `bool` | If `true`, the gun will automatically snap to nearby players and populate `RigAimedAt`. If `false`, the gun behaves as a normal world-space pointer. |
+
+###### Returns
+
+`UpdateGun()` returns a `GunInfo` object containing information about the current state of the gun.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `TriggerPressed` | `bool` | `true` while the trigger is being pressed. |
+| `GunActive` | `bool` | Indicates whether the gun is currently active and should be used. |
+| `RigAimedAt` | `VRRig` | The player currently being aimed at. Will be `null` if no player is targeted or player snapping is disabled. |
+| `GunPosition` | `Vector3` | The current world-space position of the gun. |
+
+###### Example
+
+```csharp
+public override void Update()
+{
+    GunInfo gun = GunLibUtils.UpdateGun(true);
+
+    if (!gun.GunActive)
+        return;
+
+    if (gun.TriggerPressed && gun.RigAimedAt != null)
+    {
+        // Interact with the targeted player.
+    }
+}
+```
+
+> **Tip:** Use `snapToPlayers = true` for player-targeted modules (Kick, Tag, Crash, etc.). Use `false` when interacting with the world instead of players.
+
 ---
+
+#### Keyboard Utility
+
+The Keyboard Utility displays the in-game keyboard and asynchronously returns the text entered by the user.
+
+Since keyboard input is asynchronous, it should always be awaited from an `async` method.
+
+##### Methods
+
+```csharp
+Task<string> KeyboardUtils.RequestString(string prompt);
+
+Task<string> KeyboardUtils.RequestString(
+    string prompt,
+    Action<string> onInputChanged
+);
+```
+
+###### Parameters
+
+####### RequestString(string prompt)
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `prompt` | `string` | The message displayed above the keyboard. |
+
+####### RequestString(string prompt, Action<string> onInputChanged)
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `prompt` | `string` | The message displayed above the keyboard. |
+| `onInputChanged` | `Action<string>` | Callback invoked every time the user changes the keyboard text. |
+
+###### Returns
+
+Both overloads return:
+
+| Type | Description |
+|------|-------------|
+| `Task<string>` | Completes when the user presses **Enter**, returning the final text entered. |
+
+###### Basic Example
+
+```csharp
+public override void OnEnable()
+{
+    Task.Run(async () => await OpenKeyboard());
+}
+
+private static async Task OpenKeyboard()
+{
+    string input = await KeyboardUtils.RequestString("Enter your name:");
+
+    Logger.Log(input);
+}
+```
+
+###### Live Input Example
+
+```csharp
+private static async Task OpenKeyboard()
+{
+    void OnInputChanged(string text)
+    {
+        Logger.Log($"Current Input: {text}");
+    }
+
+    string input = await KeyboardUtils.RequestString(
+        "Enter your name:",
+        OnInputChanged
+    );
+
+    Logger.Log($"Final Input: {input}");
+}
+```
+
+> **Note:** `onInputChanged` is called every time the text changes, while the returned `Task<string>` completes only after the user submits the keyboard by pressing **Enter**.
 
 ## Player Modules
 
