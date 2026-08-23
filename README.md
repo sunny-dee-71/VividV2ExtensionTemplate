@@ -1,4 +1,4 @@
-﻿# VividV2 Extension SDK
+# VividV2 Extension SDK
 
 > **A modding framework for building VR menu extensions — modules, animations, player actions, and categories — with a clean, structured API.**
 
@@ -9,6 +9,10 @@
 - [Getting Started](#getting-started)
 - [Manifest](#manifest)
 - [Categories](#categories)
+  - [Creating Categories](#creating-categories)
+  - [Parent & Child Categories](#parent--child-categories)
+  - [Hidden Categories](#hidden-categories)
+  - [Custom Categories](#custom-categories)
 - [Modules](#modules)
   - [Creating a Module](#creating-a-module)
   - [Lifecycle Methods](#lifecycle-methods)
@@ -16,6 +20,7 @@
     - [Bool Variable](#bool-variable)
     - [Int Variable](#int-variable)
     - [Float Variable](#float-variable)
+    - [Array Variable](#array-variable)
     - [String Variable](#string-variable)
     - [Color Variable](#color-variable)
     - [Keybind Variable](#keybind-variable)
@@ -60,6 +65,8 @@ internal class Manifest : ExtensionManifest
 
 Categories define where your modules appear in the menu. Register them in a central `Categories` class.
 
+### Creating Categories
+
 ```csharp
 internal class Categories
 {
@@ -85,11 +92,43 @@ To prevent a category from appearing on the menu home page, pass `true` as the t
 public static readonly Category Hidden = Category.Register("Hidden Category", null, true);
 ```
 
+### Custom Categories
+
+Custom categories allow you to filter and sort modules within a category using custom logic. Inherit from `BaseCustomCategory` and override `GetButtons()`:
+
+```csharp
+public class EnabledCustomCategory : BaseCustomCategory
+{
+    public override List<BaseButton> GetButtons(List<BaseButton> buttons)
+    {
+        var enabled = new List<BaseButton>();
+
+        foreach (var module in Main.GetModules())
+            if (module.Enabled)
+                enabled.Add(module);
+
+        return enabled;
+    }
+}
+```
+
+Then use it when registering a category:
+
+```csharp
+public static readonly Category EnabledOnly = Category.Register(
+    "Enabled Modules",
+    null,
+    false,
+    new EnabledCustomCategory()
+);
+```
+
 | Parameter | Type       | Description                                         |
 |-----------|------------|-----------------------------------------------------|
 | `name`    | `string`   | Display name shown in the menu                      |
 | `parent`  | `Category` | *(Optional)* Parent category for nesting            |
 | `hidden`  | `bool`     | *(Optional)* If `true`, hides from the home page    |
+| `customCategory` | `BaseCustomCategory` | *(Optional)* Custom filtering/sorting logic |
 
 ---
 
@@ -215,13 +254,44 @@ AddVariable(myFloat);
 
 ---
 
+#### Array Variable
+
+A base class for array-based variables. Provides core functionality for multi-option selectors.
+
+```csharp
+ArrayVariable myArray = new ArrayVariable("Options", new object[] { "A", "B", "C" });
+AddVariable(myArray);
+```
+
+| Parameter   | Type       | Description                                  |
+|-------------|------------|----------------------------------------------|
+| `name`      | string     | Display name                                 |
+| `options`   | `object[]` | Array of selectable options (first = default)|
+
+**Methods:**
+
+| Method | Description |
+|--------|-------------|
+| `Set(string targetString, bool dontInvokeChange = false)` | Set value by matching option string |
+| `Cycle(int direction)` | Cycle through options (1 = next, -1 = previous) |
+| `SetOptions(object[] options)` | Update available options |
+| `Reset()` | Reset to default value |
+
+---
+
 #### String Variable
 
-A multi-option selector. The first entry in the array is the default.
+A strongly-typed array variable for string options. The first entry in the array is the default.
 
 ```csharp
 StringVariable myString = new StringVariable("Mode", new string[] { "Walk", "Run", "Sprint" });
 AddVariable(myString);
+```
+
+Access the selected value:
+
+```csharp
+string mode = GetVariable<StringVariable>("Mode").StringValue;
 ```
 
 | Parameter   | Type       | Description                                  |
@@ -433,6 +503,8 @@ private static async Task OpenKeyboard()
 ```
 
 > **Note:** `onInputChanged` is called every time the text changes, while the returned `Task<string>` completes only after the user submits the keyboard by pressing **Enter**.
+
+---
 
 ## Player Modules
 
